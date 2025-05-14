@@ -1,56 +1,47 @@
-pipeline{
+pipeline {
     agent any
-    environment{
-        DIRECTORY_PATH = '/Users/qingliu/T1'
-        TESTING_ENVIRONMENT = 'staging'
-        PRODUCTION_ENVIRONMENT = 'QuinnieLiu'
-    }
-    stages{
-        stage("Build"){
-            steps{
-                echo "Fetch the source code from the directory path specified by the environment variable: ${env.DIRECTORY_PATH}"
-                echo "Compile the code and generate any necessary artefacts"
+    stages {
+        stage("Build") {
+            steps {
+                sh "echo 'Using npm as the build automation tool to compile and package the Node.js code'"
             }
-            post{
-                success{
+            post {
+                success {
                     mail to: "lauquinne624@gmail.com",
-                    subject: "Build Status Email",
-                    body: "Build was successful!"
+                         subject: "Build Status Email",
+                         body: "Build was successful!"
                 }
             }
         }
-        stage("Test"){
-            steps{
-                echo "Unit tests"
-                echo "Integration tests"
+        stage("Unit and Integration Tests") {
+            steps {
+                sh "echo 'Using Mocha and Chai to conduct unit and integration tests'"
             }
         }
-        stage('Code Quality Check') {
+        stage('Code Analysis') {
             steps {
-                echo "Check the quality of the code"
+                sh "echo 'Using ESLint to conduct code analysis and ensure it meets industry standards'"
             }
         }
-        stage('Deploy') {
+        stage('Security Scan') {
             steps {
-                echo "Deploy the application to a testing environment specified by the environment variable: ${env.TESTING_ENVIRONMENT}"
+                sh "echo 'Using Snyk to identify any vulnerabilities in the code and dependencies'"
             }
         }
-        stage('Approval') {
+        stage('Deploy to Staging') {
             steps {
-                echo "Waiting for manual approval..."
-                sleep(time: 10, unit: 'SECONDS')
+                sh "echo 'Using SSH to deploy Docker container to the AWS EC2 staging environment'"
+            }
+        }
+        stage('Integration Tests on Staging') {
+            steps {
+                sh "echo 'Using Postman or custom integration scripts to test the staging environment'"
             }
         }
         stage('Deploy to Production') {
             steps {
-                echo "Deploying the code to the production environment: ${env.PRODUCTION_ENVIRONMENT}"
+                sh "echo 'Using SSH to deploy Docker container to the AWS EC2 production environment'"
             }
         }
-          stage('Complete') {
-            steps {
-                echo "Completed!"
-            }
-        }
-
     }
 }
