@@ -1,0 +1,66 @@
+pipeline {
+    agent any
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/QuinnieLiu/8.2CDevSecOps.git'
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                sh 'npm install'
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                script {
+                    def testStatus = sh(script: 'npm test > test.log; echo $? > test-status.txt', returnStatus: true)
+                }
+            }
+            post {
+                always {
+                    script {
+                        def statusText = readFile('test-status.txt').trim() == '0' ? "SUCCESS" : "FAILURE"
+                        emailext(
+                            subject: "Test Stage ${statusText}",
+                            body: """<p>The <b>Test</b> stage has completed with status: <b>${statusText}</b>.</p>
+                                     <p>See attached log for details.</p>""",
+                            to: 'developer@example.com',
+                            attachmentsPattern: 'test.log'
+                        )
+                    }
+                }
+            }
+        }
+
+        stage('Generate Coverage Report') {
+            steps {
+                sh 'npm run coverage || true'
+            }
+        }
+
+        stage('NPM Audit (Security Scan)') {
+            steps {
+                script {
+                    def scanStatus = sh(script: 'npm audit > audit.log; echo $? > audit-status.txt', returnStatus: true)
+                }
+            }
+            post {
+                always {
+                    script {
+                        def statusText = readFile('audit-status.txt').trim() == '0' ? "SUCCESS" : "FAILURE"
+                        emailext(
+                            subject: "Security Scan ${statusText}",
+                            body: """<p>The <b>Security Scan</b> stage has completed with status: <b>${statusText}</b>.</p>
+                                     <p>See attached log for details.</p>""",
+                            to: 'developer@example.com',
+                            attachmentsPattern: 'audit.log'
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
